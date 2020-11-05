@@ -3,6 +3,8 @@
 #include "EventBinderWidgets/SEventItem.h"
 #include "UtilWidgets/SPickEvent.h"
 
+TMap<TWeakObjectPtr<UObject>, TMap<FName,bool>> SEventBinderAction::WinStateMap;
+
 void SEventBinderAction::Construct(const FArguments& InArgs)
 {
 	TargetBinder = InArgs._TargetBinder;
@@ -35,13 +37,22 @@ void SEventBinderAction::Construct(const FArguments& InArgs)
 			]
 		]
 	];
-
+	
 	_CollectDelegates();
 	RebuildEventList();
 }
 
 SEventBinderAction::~SEventBinderAction()
 {
+	TArray<TWeakObjectPtr<UObject>> KeyArray;
+	WinStateMap.GetKeys(KeyArray);
+	for (auto& Obj : KeyArray)
+	{
+		if (Obj.Get() == nullptr)
+		{
+			WinStateMap.Remove(Obj);
+		}
+	}
 }
 
 void SEventBinderAction::_OnAddEvent(FName EventName)
@@ -106,18 +117,25 @@ void SEventBinderAction::RebuildEventList()
 	for (auto & BindItem : TargetBinder->EventBindMap)
 	{
 		auto Item = DelegateMap.Find(BindItem.Key);
+		auto& WinActiveMap = WinStateMap.FindOrAdd(Outer);
 		
 		EventItemList->AddSlot()
 		.AutoHeight()
+	    .Padding(0,10,0,0)
 		[
 			SNew(SEventItem)
 			.EventName(BindItem.Key)
 			.Source(&BindItem.Value)
 			.TargetSignature(BindItem.Value.EventSignature)
 			.IsValid(Item != nullptr)
+			.CollapsedDefault(WinActiveMap.FindOrAdd(BindItem.Key))
 			.OnEventModify_Raw(this, &SEventBinderAction::_MarkOuterDirty)
 			.OnDeleteEvent_Raw(this, &SEventBinderAction::_OnDeleteEvent)
 			.OnReplaceEvent_Raw(this, &SEventBinderAction::_OnReplaceEvent)
+			.OnCollapsedStateChanged_Lambda([&](TSharedRef<SEventItem> Item, bool bIsCollapsed)
+			{
+				WinStateMap.FindOrAdd(Outer).FindOrAdd(Item->GetEventName()) = bIsCollapsed;
+			})
 		];
 	}
 }

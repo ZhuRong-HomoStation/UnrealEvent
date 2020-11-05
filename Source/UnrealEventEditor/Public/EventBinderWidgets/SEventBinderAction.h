@@ -40,4 +40,6 @@ private:
 	// events
 	TSharedPtr<SVerticalBox>		EventItemList;
 	TSharedPtr<SComboButton>		AddEventComboBtn;
+
+	static TMap<TWeakObjectPtr<UObject>, TMap<FName,bool>> WinStateMap;
 };

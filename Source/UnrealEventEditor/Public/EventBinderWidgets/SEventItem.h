@@ -12,18 +12,22 @@ public:
 	DECLARE_DELEGATE(FOnEventModify)
 	DECLARE_DELEGATE_OneParam(FOnDeleteEvent, TSharedRef<SEventItem>)
 	DECLARE_DELEGATE_OneParam(FOnReplaceEvent, TSharedRef<SEventItem>)
+	DECLARE_DELEGATE_TwoParams(FOnCollapsedStateChanged, TSharedRef<SEventItem>, bool)
 	
 	SLATE_BEGIN_ARGS(SEventItem)
 		: _Source(nullptr)
 		, _IsValid(true)
+		, _CollapsedDefault(true)
 	{}
 		SLATE_ARGUMENT(FEventBindInfo*, Source)
 		SLATE_ARGUMENT(FFunctionSignature, TargetSignature)
 		SLATE_ARGUMENT(FName, EventName)
 		SLATE_ARGUMENT(bool, IsValid)
+		SLATE_ARGUMENT(bool, CollapsedDefault)
 		SLATE_EVENT(FOnEventModify, OnEventModify)
 		SLATE_EVENT(FOnDeleteEvent, OnDeleteEvent)
 		SLATE_EVENT(FOnReplaceEvent, OnReplaceEvent)
+		SLATE_EVENT(FOnCollapsedStateChanged, OnCollapsedStateChanged)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -59,6 +63,7 @@ private:
 	FOnEventModify		OnEventModify;
 	FOnDeleteEvent		OnDeleteEvent;
 	FOnReplaceEvent		OnReplaceEvent;
+	FOnCollapsedStateChanged OnCollapsedStateChanged;
 	
 	// widgets
 	TSharedPtr<SButton>			HeadButton;

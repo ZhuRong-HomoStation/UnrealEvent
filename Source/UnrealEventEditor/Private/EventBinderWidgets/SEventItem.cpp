@@ -11,6 +11,7 @@ void SEventItem::Construct(const FArguments& InArgs)
 	OnEventModify = InArgs._OnEventModify;
 	OnDeleteEvent = InArgs._OnDeleteEvent;
 	OnReplaceEvent = InArgs._OnReplaceEvent;
+	OnCollapsedStateChanged = InArgs._OnCollapsedStateChanged;
 	bIsValid = InArgs._IsValid;
 	
 	// init style 
@@ -131,7 +132,7 @@ void SEventItem::Construct(const FArguments& InArgs)
 	];
 
 	// close widgets
-	SetIsCollapsed(true);
+	SetIsCollapsed(InArgs._CollapsedDefault);
 	
 	_RefreshEventInfoWidgets();
 	_RefreshDelegateItemList();
@@ -158,6 +159,7 @@ void SEventItem::SetIsCollapsed(bool bInIsCollapsed)
 	bIsCollapsed = bInIsCollapsed;
 	DelegateItemList->SetVisibility(bIsCollapsed ? EVisibility::Collapsed : EVisibility::Visible);
 	BottomBar->SetVisibility(bIsCollapsed ? EVisibility::Collapsed : EVisibility::Visible);
+	OnCollapsedStateChanged.ExecuteIfBound(StaticCastSharedRef<SEventItem>(this->AsShared()),bIsCollapsed);
 }
 
 FReply SEventItem::_OnHeadBtnClicked()
