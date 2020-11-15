@@ -1,5 +1,6 @@
 #include "UtilWidgets/SPickFunction.h"
 #include "EventBinderLibrary.h"
+#include "Helps/UnrealEventHelp.h"
 #include "Widgets/Input/SEditableTextBox.h"
 
 void SPickFunction::Construct(const FArguments& InArgs)
@@ -17,6 +18,7 @@ void SPickFunction::Construct(const FArguments& InArgs)
 		.AutoHeight()
 		[
 			SAssignNew(SearchBox, SEditableTextBox)
+			.OnTextChanged_Lambda([&](const FText&) { _RebuildFunctionList(); })
 		]
 		+SVerticalBox::Slot()
 		.AutoHeight()
@@ -83,11 +85,14 @@ void SPickFunction::_RebuildFunctionList()
 	// build user interface
 	for (auto & FunctionName : FunctionsPassFilter)
 	{
-		FuncItemBox->AddSlot()
-		.AutoHeight()
-		[
-			_BuildFunctionBtn(FunctionName)
-		];
+		if (UnrealEventHelp::CanPassFuzzySearch(FunctionName.ToString(), SearchBox->GetText().ToString()))
+		{
+			FuncItemBox->AddSlot()
+			.AutoHeight()
+			[
+				_BuildFunctionBtn(FunctionName)
+			];
+		}
 	}
 }
 

@@ -1,6 +1,7 @@
 #include "UtilWidgets/SPickEvent.h"
 
 #include "EventBinderLibrary.h"
+#include "Helps/UnrealEventHelp.h"
 
 void SPickEvent::Construct(const FArguments& InArgs)
 {
@@ -19,7 +20,8 @@ void SPickEvent::Construct(const FArguments& InArgs)
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		[
-			SNew(SEditableTextBox)
+			SAssignNew(SearchBox, SEditableTextBox)
+			.OnTextChanged_Lambda([&](const FText&) { _RebuildEventSignatureList(); })
 		]
 		+ SVerticalBox::Slot()
 		.AutoHeight()
@@ -48,7 +50,8 @@ void SPickEvent::_RebuildEventSignatureList()
 
 	for (auto & Pair : *SourceMap)
 	{
-		if (GetShouldPickEvent.Execute(Pair.Key))
+		if (GetShouldPickEvent.Execute(Pair.Key) &&
+			UnrealEventHelp::CanPassFuzzySearch(Pair.Key.ToString(), SearchBox->GetText().ToString()))
 		{
 			EventSignatureList->AddSlot()
 			.AutoHeight()

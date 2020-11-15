@@ -35,6 +35,7 @@ private:
 	FGetShouldPickEvent GetShouldPickEvent;
 	
 	// widgets
-	TSharedPtr<SVerticalBox>	EventSignatureList;
+	TSharedPtr<SEditableTextBox>	SearchBox;
+	TSharedPtr<SVerticalBox>		EventSignatureList;
 };
 
