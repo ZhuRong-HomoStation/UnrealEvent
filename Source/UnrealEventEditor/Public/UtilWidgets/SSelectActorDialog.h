@@ -8,8 +8,8 @@ class SSelectActorDialog : public SWindow
 {
 public:
 	SLATE_BEGIN_ARGS(SSelectActorDialog) {}
-		SLATE_ATTRIBUTE(TSubclassOf<AActor>, ActorClass)
-		SLATE_ATTRIBUTE(AActor*, InitActor)
+		SLATE_ARGUMENT(AActor*, InitActor)
+		SLATE_EVENT(FOnShouldFilterActor, ShoudPickActor)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -29,5 +29,7 @@ private:
 	void _OnActorSelected(AActor* InActor);
 private:
 	AActor* CurrentActor;
-	FOnShouldFilterActor ActorFilter;
+	TSubclassOf<AActor> ActorClass;
+	
+	FOnShouldFilterActor ShouldPickActor;
 };

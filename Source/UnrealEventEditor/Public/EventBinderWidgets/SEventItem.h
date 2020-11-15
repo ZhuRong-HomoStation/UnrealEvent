@@ -18,12 +18,14 @@ public:
 		: _Source(nullptr)
 		, _IsValid(true)
 		, _CollapsedDefault(true)
+		, _Owner(nullptr)
 	{}
 		SLATE_ARGUMENT(FEventBindInfo*, Source)
 		SLATE_ARGUMENT(FFunctionSignature, TargetSignature)
 		SLATE_ARGUMENT(FName, EventName)
 		SLATE_ARGUMENT(bool, IsValid)
 		SLATE_ARGUMENT(bool, CollapsedDefault)
+		SLATE_ARGUMENT(AActor*, Owner)
 		SLATE_EVENT(FOnEventModify, OnEventModify)
 		SLATE_EVENT(FOnDeleteEvent, OnDeleteEvent)
 		SLATE_EVENT(FOnReplaceEvent, OnReplaceEvent)
@@ -54,6 +56,7 @@ private:
 	FFunctionSignature	TargetSignature;
 	FEventBindInfo*		EventBindInfoSource;
 	bool				bIsValid;
+	AActor*				Owner;
 	
 	// state
 	bool				bIsCollapsed;

@@ -98,6 +98,7 @@ FText SPickActor::_OnGetActorName() const
 FReply SPickActor::_OnOpenSelectActorWindow()
 {
 	TSharedPtr<SSelectActorDialog> PickWin = SNew(SSelectActorDialog)
+		.ShoudPickActor(OnShouldPickActor)
 		.InitActor(PickedActor.Get());
 	
 	SetPickedActor(PickWin->ShowModal());

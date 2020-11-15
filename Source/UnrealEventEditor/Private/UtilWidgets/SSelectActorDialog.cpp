@@ -1,7 +1,4 @@
 #include "UtilWidgets/SSelectActorDialog.h"
-
-
-
 #include "AssetRegistryModule.h"
 #include "Editor.h"
 #include "SceneOutlinerFwd.h"
@@ -14,6 +11,9 @@
 
 void SSelectActorDialog::Construct(const FArguments& InArgs)
 {
+	ShouldPickActor = InArgs._ShoudPickActor;
+	CurrentActor = InArgs._InitActor;
+	
 	FMenuBuilder MenuBuilder(true, nullptr);
 	
 	MenuBuilder.BeginSection(NAME_None, LOCTEXT("CurrentActorOperationsHeader", "Current Actor"));
@@ -67,7 +67,7 @@ void SSelectActorDialog::Construct(const FArguments& InArgs)
 		SceneOutliner::FInitializationOptions InitOptions;
 		InitOptions.Mode = ESceneOutlinerMode::ActorPicker;
 		InitOptions.Filters->AddFilterPredicate(
-			FOnShouldFilterActor::CreateLambda([](const AActor*){ return true; }));
+			FOnShouldFilterActor::CreateLambda([&](const AActor* InActor){ return !ShouldPickActor.IsBound() || ShouldPickActor.Execute(InActor); }));
 		InitOptions.bFocusSearchBoxWhenOpened = true;
 	
 		InitOptions.ColumnMap.Add(SceneOutliner::FBuiltInColumnTypes::Label(), SceneOutliner::FColumnInfo(SceneOutliner::EColumnVisibility::Visible, 0) );
@@ -150,7 +150,7 @@ void SSelectActorDialog::_OnPaste()
 	else
 	{
 		AActor* Actor = LoadObject<AActor>(NULL, *DestPath);
-		if(Actor && (!ActorFilter.IsBound() || ActorFilter.Execute(Actor)))
+		if(Actor && (!ShouldPickActor.IsBound() || ShouldPickActor.Execute(Actor)))
 		{
 			_OnActorSelected(Actor);
 		}

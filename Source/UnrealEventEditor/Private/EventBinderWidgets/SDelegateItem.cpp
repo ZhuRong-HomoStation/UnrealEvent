@@ -14,6 +14,7 @@ void SDelegateItem::Construct(const FArguments& InArgs)
 	OnItemSelected = InArgs._OnItemSelected;
 	OnBindActorChanged = InArgs._OnBindActorChanged;
 	OnBindFunctionChanged = InArgs._OnBindFunctionChanged;
+	Owner = InArgs._Owner;
 
 	// border style 
 	SBorder::FArguments Args;
@@ -64,6 +65,7 @@ void SDelegateItem::Construct(const FArguments& InArgs)
 			[
 				SNew(SPickActor)
 				.DefaultActor(BindActor)
+				.OnShouldPickActor_Lambda([&](const AActor* Actor) { return Owner->GetLevel() == Actor->GetLevel(); })
 				.OnActorSelected_Raw(this, &SDelegateItem::_OnPickedActor)
 			]
 			+ SHorizontalBox::Slot()

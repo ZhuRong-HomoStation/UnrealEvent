@@ -15,9 +15,11 @@ public:
 	
 	SLATE_BEGIN_ARGS(SDelegateItem)
 		: _DefaultActor(nullptr)
+		, _Owner(nullptr)
 	{}
 		SLATE_ARGUMENT(FFunctionSignature, TargetSignature)
 		SLATE_ARGUMENT(AActor*, DefaultActor)
+		SLATE_ARGUMENT(AActor*, Owner)
 		SLATE_ARGUMENT(FName, DefaultFunction)
 		SLATE_ATTRIBUTE(bool, IsSelected)
 		SLATE_EVENT(FOnItemSelected, OnItemSelected)
@@ -42,6 +44,7 @@ public:
 private:
 	// config 
 	FFunctionSignature	TargetSignature;
+	AActor*				Owner;
 
 	// state
 	AActor*				BindActor;

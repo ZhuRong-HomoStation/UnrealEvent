@@ -13,6 +13,7 @@ void SEventItem::Construct(const FArguments& InArgs)
 	OnReplaceEvent = InArgs._OnReplaceEvent;
 	OnCollapsedStateChanged = InArgs._OnCollapsedStateChanged;
 	bIsValid = InArgs._IsValid;
+	Owner = InArgs._Owner;
 	
 	// init style 
 	static FButtonStyle BtnStyle;
@@ -226,6 +227,7 @@ TSharedRef<SWidget> SEventItem::_AddDelegateItem(FDelegateBindInfo& InBindInfo)
         SAssignNew(BindItem, SDelegateItem)
         .TargetSignature(TargetSignature)
         .DefaultActor(InBindInfo.TargetActor)
+        .Owner(Owner)
         .DefaultFunction(InBindInfo.BindFunction)
         .OnBindActorChanged_Lambda([&](AActor* InActor){ InBindInfo.TargetActor = InActor; OnEventModify.ExecuteIfBound(); })
         .OnBindFunctionChanged_Lambda([&](FName InFuc) { InBindInfo.BindFunction = InFuc; OnEventModify.ExecuteIfBound(); })
