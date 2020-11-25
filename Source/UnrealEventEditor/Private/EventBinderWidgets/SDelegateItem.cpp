@@ -65,7 +65,7 @@ void SDelegateItem::Construct(const FArguments& InArgs)
 			[
 				SNew(SPickActor)
 				.DefaultActor(BindActor)
-				.OnShouldPickActor_Lambda([&](const AActor* Actor) { return Owner->GetLevel() == Actor->GetLevel(); })
+				.OnShouldPickActor_Lambda([&](const AActor* Actor) { return true; })
 				.OnActorSelected_Raw(this, &SDelegateItem::_OnPickedActor)
 			]
 			+ SHorizontalBox::Slot()

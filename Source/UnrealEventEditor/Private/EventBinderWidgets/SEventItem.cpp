@@ -226,7 +226,7 @@ TSharedRef<SWidget> SEventItem::_AddDelegateItem(FDelegateBindInfo& InBindInfo)
     [
         SAssignNew(BindItem, SDelegateItem)
         .TargetSignature(TargetSignature)
-        .DefaultActor(InBindInfo.TargetActor)
+        .DefaultActor(InBindInfo.TargetActor.Get())
         .Owner(Owner)
         .DefaultFunction(InBindInfo.BindFunction)
         .OnBindActorChanged_Lambda([&](AActor* InActor){ InBindInfo.TargetActor = InActor; OnEventModify.ExecuteIfBound(); })

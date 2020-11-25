@@ -69,12 +69,15 @@ struct UNREALEVENT_API FDelegateBindInfo
 public:
 	UPROPERTY(VisibleAnywhere)	
 	FName		BindFunction;
+	UPROPERTY(VisibleAnywhere)	
+	FName		BindComponentName;
 	UPROPERTY(VisibleAnywhere)
-	AActor*		TargetActor = nullptr;
-
+	TSoftObjectPtr<AActor>		TargetActor = TSoftObjectPtr<AActor>(nullptr);
+	
+	
 	bool operator==(const FDelegateBindInfo& Rhs) const
 	{
-		return  BindFunction == Rhs.BindFunction && TargetActor == Rhs.TargetActor;
+		return  BindFunction == Rhs.BindFunction && TargetActor == Rhs.TargetActor && BindComponentName == Rhs.BindComponentName;
 	}
 	bool operator!=(const FDelegateBindInfo& Rhs) const { return !(*this == Rhs); }
 };
@@ -90,9 +93,12 @@ public:
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere)
 	FFunctionSignature			EventSignature;	
-#endif 
+#endif
+
+	bool IsEmpty() const { return AllDelegates.Num() == 0; }
 };
 
+// bind per object 
 USTRUCT(BlueprintType)
 struct UNREALEVENT_API FEventBinder
 {
@@ -101,5 +107,64 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	TMap<FName, FEventBindInfo>	EventBindMap;
 
-	void BindToActor(AActor* InActor);
+	void BindToObject(UObject* InObject);
+
+	bool IsEmpty() const
+	{
+		bool bIsEmpty = true;
+		for (auto & It : EventBindMap)
+		{
+			if (!It.Value.IsEmpty())
+			{
+				bIsEmpty = false;
+				break;
+			}
+		}
+		return bIsEmpty;
+	}
 };
+
+// bind whole actor(include Actor and components)
+USTRUCT()
+struct UNREALEVENT_API FEventBinderActor
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(VisibleAnywhere)
+	TMap<FName, FEventBinder>	ActorBindMap;
+
+	bool IsEmpty() const
+	{
+		bool bIsEmpty = true;
+		for (auto & It : ActorBindMap)
+		{
+			if (!It.Value.IsEmpty())
+			{
+				bIsEmpty = false;
+				break;
+			}
+		}
+		return bIsEmpty;
+	}
+};
+
+// bind data 
+UCLASS()
+class UNREALEVENT_API UEventBinderAssetUserData : public UAssetUserData
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(VisibleAnywhere)
+	TMap<AActor*, FEventBinderActor>		AllBindMap;
+
+	void RemoveInvalidItem();
+};
+
+// dummy struct for custom detail 
+USTRUCT()
+struct UNREALEVENT_API FEventBinderDummy
+{
+	GENERATED_BODY()
+public:
+};
+

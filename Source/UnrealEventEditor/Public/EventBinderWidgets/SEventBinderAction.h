@@ -10,11 +10,8 @@ class SEventBinderAction : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SEventBinderAction)
-		: _TargetBinder(nullptr)
-		, _Outer(nullptr)
 	{}
-		SLATE_ARGUMENT(FEventBinder*, TargetBinder)
-		SLATE_ARGUMENT(UObject*, Outer)
+		SLATE_ARGUMENT(AActor*, TargetActor)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -22,6 +19,9 @@ public:
 
 	void RebuildEventList();
 private:
+	FEventBinderActor& _GetTargetBinder();
+	void _TryRemoveTargetBinder();
+	
 	void _OnAddEvent(FName EventName);
 	void _OnDeleteEvent(TSharedRef<SEventItem> InItem);
 	void _OnReplaceEvent(TSharedRef<SEventItem> InItem);
@@ -31,8 +31,8 @@ private:
 	TSharedRef<SWidget> _GetAddEventMenuContent();
 private:
 	// settings 
-	FEventBinder*		TargetBinder;
-	UObject*			Outer;
+	UEventBinderAssetUserData*		TargetBinder;
+	AActor*							TargetActor;
 
 	// state 
 	TMap<FName, FFunctionSignature>		DelegateMap;

@@ -1,14 +1,30 @@
 #include "EventBinderWidgets/SEventBinderAction.h"
 #include "EventBinderLibrary.h"
 #include "EventBinderWidgets/SEventItem.h"
+#include "Logging.h"
 #include "UtilWidgets/SPickEvent.h"
 
 TMap<TWeakObjectPtr<UObject>, TMap<FName,bool>> SEventBinderAction::WinStateMap;
 
 void SEventBinderAction::Construct(const FArguments& InArgs)
 {
-	TargetBinder = InArgs._TargetBinder;
-	Outer = InArgs._Outer;
+	if (InArgs._TargetActor == nullptr)
+	{
+		UE_LOG(LogUnrealEventEditor, Error, TEXT("%s: Pass null targetActor"), TEXT(__FUNCTION__));
+		return;
+	}
+	if (InArgs._TargetActor->GetLevel() == nullptr)
+	{
+		UE_LOG(LogUnrealEventEditor, Error, TEXT("%s: targetActor %s lost level"), TEXT(__FUNCTION__), InArgs._TargetActor->GetName());
+		return;
+	}
+	TargetActor = InArgs._TargetActor;
+	TargetBinder = TargetActor->GetLevel()->GetAssetUserData<UEventBinderAssetUserData>();
+	if (!TargetBinder)
+	{
+		TargetBinder = NewObject<UEventBinderAssetUserData>(TargetActor->GetLevel());
+		TargetActor->GetLevel()->AddAssetUserData(TargetBinder);
+	}
 	
 	ChildSlot
 	[
@@ -58,7 +74,7 @@ SEventBinderAction::~SEventBinderAction()
 void SEventBinderAction::_OnAddEvent(FName EventName)
 {
 	AddEventComboBtn->SetIsOpen(false);
-	auto& BindInfo = TargetBinder->EventBindMap.Add(EventName);
+	auto& BindInfo = _GetTargetBinder().ActorBindMap.FindOrAdd(NAME_None).EventBindMap.Add(EventName);
 	BindInfo.EventSignature = DelegateMap[EventName];
 	_MarkOuterDirty();
 	RebuildEventList();
@@ -66,7 +82,8 @@ void SEventBinderAction::_OnAddEvent(FName EventName)
 
 void SEventBinderAction::_OnDeleteEvent(TSharedRef<SEventItem> InItem)
 {
-	TargetBinder->EventBindMap.Remove(InItem->GetEventName());
+	_GetTargetBinder().ActorBindMap.FindOrAdd(NAME_None).EventBindMap.Remove(InItem->GetEventName());
+	_TryRemoveTargetBinder();
 	_MarkOuterDirty();
 	RebuildEventList();
 }
@@ -84,9 +101,9 @@ void SEventBinderAction::_OnReplaceEvent(TSharedRef<SEventItem> InItem)
     })
     .OnPickEvent_Lambda([&](FName InName)
     {
-        FEventBindInfo Info = MoveTemp(TargetBinder->EventBindMap[InItem->GetEventName()]);
-        TargetBinder->EventBindMap.Remove(InItem->GetEventName());
-        TargetBinder->EventBindMap.Add(InName, MoveTemp(Info));
+        FEventBindInfo Info = MoveTemp(_GetTargetBinder().ActorBindMap.FindOrAdd(NAME_None).EventBindMap[InItem->GetEventName()]);
+        _GetTargetBinder().ActorBindMap.FindOrAdd(NAME_None).EventBindMap.Remove(InItem->GetEventName());
+        _GetTargetBinder().ActorBindMap.FindOrAdd(NAME_None).EventBindMap.Add(InName, MoveTemp(Info));
 		_MarkOuterDirty();
     	RebuildEventList();
         FSlateApplication::Get().DestroyWindowImmediately(Win.ToSharedRef());
@@ -108,16 +125,17 @@ void SEventBinderAction::_OnReplaceEvent(TSharedRef<SEventItem> InItem)
 
 void SEventBinderAction::_MarkOuterDirty()
 {
-	Outer->MarkPackageDirty();
+	TargetActor->MarkPackageDirty();
 }
 
 void SEventBinderAction::RebuildEventList()
 {
+	if (!TargetBinder->AllBindMap.Find(TargetActor)) return;
 	EventItemList->ClearChildren();
-	for (auto & BindItem : TargetBinder->EventBindMap)
+	for (auto & BindItem : _GetTargetBinder().ActorBindMap.FindOrAdd(NAME_None).EventBindMap)
 	{
 		auto Item = DelegateMap.Find(BindItem.Key);
-		auto& WinActiveMap = WinStateMap.FindOrAdd(Outer);
+		auto& WinActiveMap = WinStateMap.FindOrAdd(TargetActor);
 		
 		EventItemList->AddSlot()
 		.AutoHeight()
@@ -128,24 +146,34 @@ void SEventBinderAction::RebuildEventList()
 			.Source(&BindItem.Value)
 			.TargetSignature(BindItem.Value.EventSignature)
 			.IsValid(Item != nullptr)
-			.Owner(Cast<AActor>(Outer))
+			.Owner(Cast<AActor>(TargetActor))
 			.CollapsedDefault(WinActiveMap.FindOrAdd(BindItem.Key))
 			.OnEventModify_Raw(this, &SEventBinderAction::_MarkOuterDirty)
 			.OnDeleteEvent_Raw(this, &SEventBinderAction::_OnDeleteEvent)
 			.OnReplaceEvent_Raw(this, &SEventBinderAction::_OnReplaceEvent)
 			.OnCollapsedStateChanged_Lambda([&](TSharedRef<SEventItem> Item, bool bIsCollapsed)
 			{
-				WinStateMap.FindOrAdd(Outer).FindOrAdd(Item->GetEventName()) = bIsCollapsed;
+				WinStateMap.FindOrAdd(TargetActor).FindOrAdd(Item->GetEventName()) = bIsCollapsed;
 			})
 		];
 	}
+}
+
+FEventBinderActor& SEventBinderAction::_GetTargetBinder()
+{
+	return TargetBinder->AllBindMap.FindOrAdd(TargetActor);
+}
+
+void SEventBinderAction::_TryRemoveTargetBinder()
+{
+	TargetBinder->RemoveInvalidItem();
 }
 
 void SEventBinderAction::_CollectDelegates()
 {
 	DelegateMap.Reset();
 	// each delegates 
-	for(TFieldIterator<FMulticastDelegateProperty> DelegateIt(Outer->GetClass()); DelegateIt; ++DelegateIt)
+	for(TFieldIterator<FMulticastDelegateProperty> DelegateIt(TargetActor->GetClass()); DelegateIt; ++DelegateIt)
 	{
 		FName DelegateName = FName(DelegateIt->GetName());
 		DelegateMap.Add(DelegateName, FEventBinderLibrary::GetFunctionSignature(DelegateIt->SignatureFunction));
@@ -156,7 +184,7 @@ TSharedRef<SWidget> SEventBinderAction::_GetAddEventMenuContent()
 {
 	return SNew(SPickEvent)
 	.Source(&DelegateMap)
-	.GetShouldPickEvent_Lambda([&](FName InEventName) { return !TargetBinder->EventBindMap.Find(InEventName); })
+	.GetShouldPickEvent_Lambda([&](FName InEventName) { return !_GetTargetBinder().ActorBindMap.FindOrAdd(NAME_None).EventBindMap.Find(InEventName); })
 	.OnPickEvent_Raw(this, &SEventBinderAction::_OnAddEvent);
 }
 
