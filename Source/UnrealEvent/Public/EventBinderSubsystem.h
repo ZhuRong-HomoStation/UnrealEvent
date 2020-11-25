@@ -29,6 +29,7 @@ private:
 	bool _ApplyBindInfo(const FDelegateBindInfo& InBindInfo, FName InEventName, AActor* TargetActor, FName InCompName);
 	void _ApplyLevelBindInfo(ULevel* InLevel);
 	void _TryApplyItemsLostReference();
+	void _ResearchItemsLostReference();
 public:
 	// ~Begin USubsystem API
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -37,6 +38,7 @@ public:
 
 private:
 	FDelegateHandle		OnLevelAddToWorldHandle;
+	FDelegateHandle		OnLevelRemoveFromWorldHandle;
 
 	UPROPERTY()
 	TArray<FEventBinderLostReferenceItem>	LostReferenceItems;

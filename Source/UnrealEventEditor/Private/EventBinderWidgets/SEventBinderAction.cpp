@@ -15,7 +15,7 @@ void SEventBinderAction::Construct(const FArguments& InArgs)
 	}
 	if (InArgs._TargetActor->GetLevel() == nullptr)
 	{
-		UE_LOG(LogUnrealEventEditor, Error, TEXT("%s: targetActor %s lost level"), TEXT(__FUNCTION__), InArgs._TargetActor->GetName());
+		UE_LOG(LogUnrealEventEditor, Error, TEXT("%s: targetActor %s lost level"), TEXT(__FUNCTION__), *InArgs._TargetActor->GetName());
 		return;
 	}
 	TargetActor = InArgs._TargetActor;
