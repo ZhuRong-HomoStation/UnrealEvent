@@ -23,8 +23,9 @@ public:
 	AActor* GetPickedActor() const { return PickedActor.Get(); }
 private:
 	FText 	_OnGetActorName() const;
-	FReply 	_OnOpenSelectActorWindow();
+	FReply 	_OnOpenSelectActorWindow(); 
 	FReply 	_OnPickActor();
+	FReply 	_OnFindActor();
 private:
 	// config 
 	TWeakObjectPtr<AActor>	PickedActor;

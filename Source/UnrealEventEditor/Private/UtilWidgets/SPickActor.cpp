@@ -73,6 +73,22 @@ void SPickActor::Construct(const FArguments& InArgs)
 	                .ColorAndOpacity(FSlateColor::UseForeground())
 	            ]
 	        ]
+	        + SHorizontalBox::Slot()
+	        .AutoWidth()
+	        .VAlign(VAlign_Center)
+	        [
+		        SNew(SButton)
+	            .ButtonStyle(FEditorStyle::Get(), "HoverHintOnly")
+	            .OnClicked(this, &SPickActor::_OnFindActor)
+	            .ContentPadding(4.0f)
+	            .ForegroundColor(FSlateColor::UseForeground())
+	            .IsFocusable(false)
+	        	[
+	        		SNew(SImage)
+	        		.Image(FEditorStyle::GetBrush("PropertyWindow.Button_Browse"))
+	        		.ColorAndOpacity(FSlateColor::UseForeground())
+	        	]
+	        ]
         ]
 	];
 }
@@ -121,5 +137,17 @@ FReply SPickActor::_OnPickActor()
             FOnActorSelected::CreateRaw(this, &SPickActor::SetPickedActor));
 	}
 
+	return FReply::Handled();
+}
+
+FReply SPickActor::_OnFindActor()
+{
+	if (PickedActor.Get())
+	{
+		GEditor->MoveViewportCamerasToActor(*PickedActor.Get(), false);
+		GEditor->SelectNone(true, true);
+		GEditor->SelectActor(PickedActor.Get(), true, true);
+	}
+	
 	return FReply::Handled();
 }

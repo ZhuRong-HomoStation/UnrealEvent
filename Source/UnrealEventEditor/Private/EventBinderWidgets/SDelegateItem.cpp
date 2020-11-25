@@ -48,7 +48,7 @@ void SDelegateItem::Construct(const FArguments& InArgs)
             .ButtonContent()
             [
                 SAssignNew(PickFunctionText, STextBlock)
-                .ColorAndOpacity(bIsFunctionValid ? FLinearColor::White : FLinearColor::Red)
+                .ColorAndOpacity_Lambda([&] { return _IsBindFunctionValid() ? FLinearColor::White : FLinearColor::Red; })
                 .Text_Lambda([&]{ return _IsBindFunctionValid() ? FText::FromName(BindFunction) : FText::FromString(TEXT("InvalidFunction")); })
             ]
 		]

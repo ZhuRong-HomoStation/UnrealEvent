@@ -130,8 +130,8 @@ void SEventBinderAction::_MarkOuterDirty()
 
 void SEventBinderAction::RebuildEventList()
 {
-	if (!TargetBinder->AllBindMap.Find(TargetActor)) return;
 	EventItemList->ClearChildren();
+	if (!TargetBinder->AllBindMap.Find(TargetActor)) return;
 	for (auto & BindItem : _GetTargetBinder().ActorBindMap.FindOrAdd(NAME_None).EventBindMap)
 	{
 		auto Item = DelegateMap.Find(BindItem.Key);
