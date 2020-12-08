@@ -1,4 +1,3 @@
-# UnrealEvent
 ## 入门
 
 插件用于在Detail中绑定DynamicMulticastDelegate(或EventDispatcher)，而无需编写新的蓝图或增加C++代码，在特定场景下能够方便解耦(类似Unity的EventSystem)，使用本插件，只要将本插件复制到Plugin目录下即可，由于本插件对Detail进行了注入，在任何Actor身上都能使用。
