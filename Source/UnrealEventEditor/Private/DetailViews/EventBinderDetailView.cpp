@@ -57,6 +57,11 @@ void EventBinderDetailView::CustomizeChildren(TSharedRef<IPropertyHandle> Proper
         ];
 		return;
 	}
+	else if (OutActor->GetWorld() == nullptr)
+	{
+		ChildBuilder.GetParentCategory().GetParentLayout().HideCategory(TEXT("DataBinder"));
+		return;
+	}
 	
 	// gen widget 
 	Builder.AddCustomRow(FText::FromString(TEXT("EventBinder")))
